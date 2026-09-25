@@ -1,0 +1,454 @@
+/* ========================================================
+   TaniQ - Luxury Customer Video Cinema Viewer
+   Strict Isolation: Only plays the scanned folder's videos.
+   ======================================================== */
+
+:root {
+  --bg-cinema: #07080a;
+  --bg-glass: rgba(18, 21, 28, 0.85);
+  --gold-primary: #d4af37;
+  --gold-light: #f6e29f;
+  --gold-gradient: linear-gradient(135deg, #d4af37 0%, #f6e29f 50%, #aa7c1e 100%);
+  --gold-glow: 0 0 25px rgba(212, 175, 55, 0.35);
+  
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-gold: rgba(212, 175, 55, 0.25);
+  --radius-full: 9999px;
+  --transition: all 0.22s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-cinema);
+  color: var(--text-main);
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+/* Minimalist Luxury Viewer Header */
+.taniq-viewer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-gold);
+  z-index: 50;
+}
+
+.viewer-brand-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.viewer-logo-frame {
+  height: 42px;
+  padding: 3px 8px;
+  background: #ffffff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 112, 243, 0.3);
+}
+
+.viewer-brand-logo-img {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.viewer-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.viewer-brand-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #0070f3 0%, #a855f7 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.1;
+}
+
+.viewer-tagline {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.viewer-folder-pill {
+  font-size: 12px;
+  color: var(--gold-light);
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  margin-left: 6px;
+}
+
+.viewer-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.viewer-track-badge {
+  font-size: 12.5px;
+  color: var(--gold-light);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-viewer-close-top {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-full);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn-viewer-close-top:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+}
+
+/* Cinema Stage Container */
+.cinema-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 20px 24px;
+  position: relative;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Video Wrapper */
+.video-frame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 72vh;
+  background: #000;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--border-gold);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), var(--gold-glow);
+}
+
+.video-frame video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Buffering Spinner */
+.video-spinner {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 10;
+}
+.spinner-ring {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(212, 175, 55, 0.2);
+  border-top-color: var(--gold-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Center Big Play Button */
+.giant-play-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--gold-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #12151c;
+  font-size: 28px;
+  cursor: pointer;
+  box-shadow: var(--gold-glow);
+  transition: var(--transition);
+  z-index: 8;
+}
+.giant-play-btn:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Below-Player Control & Playlist Bar */
+.player-meta-bar {
+  width: 100%;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.video-current-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.video-current-title i {
+  color: var(--gold-primary);
+}
+
+.playlist-nav-btns {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-nav-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-gold);
+  color: #fff;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn-nav-step:hover:not(:disabled) {
+  background: var(--gold-gradient);
+  color: #12151c;
+  border-color: transparent;
+}
+.btn-nav-step:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Playlist Drawer List (If multiple videos in folder) */
+.folder-playlist-chips {
+  width: 100%;
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.playlist-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+  font-size: 12.5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+.playlist-chip:hover {
+  border-color: var(--border-gold);
+  color: #fff;
+}
+.playlist-chip.active {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--gold-primary);
+  color: var(--gold-light);
+  font-weight: 600;
+}
+.playlist-chip .chip-num {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+.playlist-chip.active .chip-num {
+  background: var(--gold-gradient);
+  color: #12151c;
+}
+
+/* ========================================================
+   FULL SCREEN OUTRO SCREEN (When video/playlist finishes)
+   Requirement: "khatam hone ke bad website close ho jaye"
+   ======================================================== */
+.outro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: radial-gradient(circle at center, rgba(20, 24, 32, 0.98) 0%, rgba(7, 8, 10, 0.99) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px;
+  animation: fadeInOutro 0.4s ease-out;
+}
+@keyframes fadeInOutro {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.outro-logo-frame {
+  max-width: 240px;
+  background: #ffffff;
+  padding: 12px 20px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 10px 30px rgba(0, 112, 243, 0.4);
+}
+
+.outro-logo-img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.outro-brand-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, #0070f3 0%, #a855f7 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+
+.outro-subtitle {
+  font-size: 18px;
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.outro-note {
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 420px;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.outro-countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--gold-light);
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  margin-bottom: 24px;
+}
+
+.outro-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.btn-close-window {
+  width: 100%;
+  padding: 14px 20px;
+  background: var(--gold-gradient);
+  color: #0f1217;
+  font-weight: 700;
+  font-size: 15px;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  box-shadow: var(--gold-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: var(--transition);
+}
+.btn-close-window:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 35px rgba(212, 175, 55, 0.5);
+}
+
+.btn-replay {
+  width: 100%;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 13.5px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn-replay:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 640px) {
+  .taniq-viewer-header { padding: 12px 16px; }
+  .viewer-folder-pill { display: none; }
+  .cinema-stage { padding: 10px 12px; }
+  .video-frame { border-radius: 10px; }
+}

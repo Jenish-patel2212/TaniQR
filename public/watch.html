@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TaniQR - Video Showcase</title>
+  <meta name="description" content="TaniQR exclusive folder video showcase.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="images/logo.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Viewer Stylesheet -->
+  <link rel="stylesheet" href="css/viewer.css">
+</head>
+<body>
+
+  <!-- Minimalist Luxury TaniQR Header -->
+  <header class="taniq-viewer-header">
+    <div class="viewer-brand-left">
+      <div class="viewer-logo-frame">
+        <img src="images/logo.png" alt="TaniQR Logo" class="viewer-brand-logo-img">
+      </div>
+      <div class="viewer-brand-text">
+        <span class="viewer-brand-title">TaniQR</span>
+        <span class="viewer-tagline">Create. Scan. Share.</span>
+      </div>
+      <span class="viewer-folder-pill" id="viewerFolderName">Collection Showcase</span>
+    </div>
+
+    <div class="viewer-header-right">
+      <div class="viewer-track-badge" id="viewerTrackBadge" style="display: none;">
+        <i class="fa-solid fa-play" style="font-size: 10px;"></i>
+        <span id="trackBadgeText">Video 1 of 1</span>
+      </div>
+      <button class="btn-viewer-close-top" id="btnCloseViewerTop" title="Close / Exit Player">
+        <i class="fa-solid fa-xmark"></i>
+        <span>Close</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Cinema Stage -->
+  <main class="cinema-stage">
+    
+    <!-- Video Player Frame -->
+    <div class="video-frame" id="videoFrame">
+      <video id="taniqVideoPlayer" controls playsinline preload="auto">
+        <!-- Source set dynamically by JavaScript -->
+      </video>
+
+      <!-- Buffering Spinner -->
+      <div class="video-spinner" id="videoSpinner" style="display: none;">
+        <div class="spinner-ring"></div>
+        <span style="font-size: 12.5px; color: var(--gold-light);">Buffering video...</span>
+      </div>
+
+      <!-- Center Big Play Button (shown before first tap on mobile) -->
+      <div class="giant-play-btn" id="giantPlayBtn">
+        <i class="fa-solid fa-play"></i>
+      </div>
+    </div>
+
+    <!-- Below-Player Info & Playlist Bar -->
+    <div class="player-meta-bar">
+      <div class="video-current-title">
+        <i class="fa-solid fa-film"></i>
+        <span id="currentVideoTitle">Loading video...</span>
+      </div>
+
+      <div class="playlist-nav-btns" id="playlistNavBtns" style="display: none;">
+        <button class="btn-nav-step" id="btnPrevVideo" disabled title="Previous Video">
+          <i class="fa-solid fa-backward-step"></i> Prev
+        </button>
+        <button class="btn-nav-step" id="btnNextVideo" title="Next Video">
+          Next <i class="fa-solid fa-forward-step"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Playlist Chips (if multiple videos exist in this folder) -->
+    <div class="folder-playlist-chips" id="folderPlaylistChips" style="display: none;">
+      <!-- Populated dynamically via JavaScript -->
+    </div>
+
+  </main>
+
+  <!-- Fullscreen Outro Screen (When video/playlist finishes) -->
+  <div class="outro-overlay" id="outroOverlay" style="display: none;">
+    <div class="outro-logo-frame">
+      <img src="images/logo.png" alt="TaniQR Logo" class="outro-logo-img">
+    </div>
+    <div class="outro-brand-title">TaniQR</div>
+    <div class="outro-subtitle">Thank You for Watching</div>
+    <p class="outro-note">
+      Aapka video session complete ho chuka hai. Session automatically close ho raha hai.
+    </p>
+
+    <div class="outro-countdown">
+      <i class="fa-solid fa-clock-rotate-left"></i>
+      <span>Closing in <strong id="closeCountdownNum">5</strong>s...</span>
+    </div>
+
+    <div class="outro-actions">
+      <button class="btn-close-window" id="btnCloseWindowBtn">
+        <i class="fa-solid fa-power-off"></i> Exit / Close Player
+      </button>
+      <button class="btn-replay" id="btnReplayBtn">
+        <i class="fa-solid fa-rotate-left"></i> Replay From Beginning
+      </button>
+    </div>
+  </div>
+
+  <!-- Viewer Logic -->
+  <script src="js/viewer.js"></script>
+</body>
+</html>

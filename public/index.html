@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaniQR - Admin Video & QR Portal</title>
+  <meta name="description" content="TaniQR - Create folders, upload videos, and generate isolated folder QR codes for seamless client streaming.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="images/logo.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- TaniQR Top Navigation Header -->
+  <header class="taniq-header">
+    <a href="index.html" class="taniq-brand">
+      <div class="brand-logo-frame">
+        <img src="images/logo.png" alt="TaniQR Logo" class="brand-logo-img">
+      </div>
+      <div class="brand-text-col">
+        <span class="brand-title">TaniQR</span>
+        <span class="brand-subtitle">Create. Scan. Share.</span>
+      </div>
+    </a>
+
+    <div class="header-right">
+      <!-- Phone Camera Wi-Fi Scan Badge -->
+      <div class="network-pill" id="networkPill" title="Click to copy mobile scan link">
+        <i class="fa-solid fa-wifi"></i>
+        <span>Scan IP: <strong id="hostIpDisplay">http://localhost:5000</strong></span>
+        <i class="fa-regular fa-copy" style="font-size: 11px;"></i>
+      </div>
+
+      <!-- Quick Action: Create New Folder -->
+      <button class="btn-primary-gold" id="btnOpenCreateFolder">
+        <i class="fa-solid fa-folder-plus"></i>
+        <span>+ Create Folder</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="taniq-container">
+    
+    <!-- Breadcrumb Bar -->
+    <nav class="taniq-breadcrumb" id="breadcrumbNav">
+      <span class="breadcrumb-link" id="bcHomeLink"><i class="fa-solid fa-layer-group"></i> All Folders</span>
+      <span class="breadcrumb-sep" id="bcSep" style="display: none;"><i class="fa-solid fa-chevron-right"></i></span>
+      <span class="breadcrumb-active" id="bcFolderTitle" style="display: none;">Folder Name</span>
+    </nav>
+
+    <!-- ========================================================
+         VIEW 1: ALL FOLDERS (HOME VIEW)
+         ======================================================== -->
+    <section id="viewAllFolders">
+      <!-- Hero Welcome Banner -->
+      <div class="hero-banner">
+        <div class="hero-text">
+          <h1>Exclusive Folder &amp; QR Management</h1>
+          <p>
+            Har collection ya product ke liye alag <strong>Folder</strong> banayein aur usme videos dalein. 
+            Har folder ka apna <strong>unique QR Code</strong> hota hai. 
+            User jab scan karega, toh <strong>sirf wahi folder ke videos chalenge</strong> aur khatam hone par website close ho jayegi!
+          </p>
+        </div>
+        <button class="btn-primary-gold" id="heroCreateFolderBtn">
+          <i class="fa-solid fa-folder-plus"></i>
+          <span>Create New Folder</span>
+        </button>
+      </div>
+
+      <!-- Section Header -->
+      <div class="section-header-row">
+        <div class="section-title">
+          <i class="fa-solid fa-folder-tree"></i>
+          <span>Your Video Folders</span>
+          <span class="section-badge" id="foldersCountBadge">0 Folders</span>
+        </div>
+      </div>
+
+      <!-- Folders Grid -->
+      <div class="folders-grid" id="foldersGrid">
+        <!-- Injected dynamically via JavaScript -->
+      </div>
+    </section>
+
+    <!-- ========================================================
+         VIEW 2: INSIDE FOLDER VIEW (VIDEOS & SEQUENCE)
+         ======================================================== -->
+    <section id="viewFolderDetail" style="display: none;" class="folder-detail-view">
+      
+      <!-- Top Action Bar -->
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <button class="btn-secondary" id="btnBackToFolders">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Back to All Folders</span>
+        </button>
+        <button class="btn-primary-gold" id="btnOpenUploadModal">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <span>+ Upload Videos to this Folder</span>
+        </button>
+      </div>
+
+      <!-- Folder QR Code Spotlight Banner -->
+      <div class="folder-qr-spotlight" id="folderSpotlightCard">
+        <div class="spotlight-info">
+          <div class="spotlight-badge"><i class="fa-solid fa-qrcode"></i> Folder QR Code</div>
+          <h2 class="spotlight-title" id="spotlightFolderTitle">Folder Name</h2>
+          <p class="spotlight-desc" id="spotlightFolderDesc">Folder description...</p>
+          
+          <div class="spotlight-notice">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span><strong>Strict User Isolation:</strong> Scanner will see <em>ONLY</em> this folder's videos. No other folders or admin options are shown.</span>
+          </div>
+
+          <div class="spotlight-actions">
+            <button class="btn-primary-gold" id="btnDownloadFolderPng">
+              <i class="fa-solid fa-download"></i> Download PNG QR
+            </button>
+            <button class="btn-secondary" id="btnDownloadFolderSvg">
+              <i class="fa-solid fa-file-code"></i> Vector SVG
+            </button>
+            <button class="btn-secondary" id="btnPrintFolderFlyer">
+              <i class="fa-solid fa-print"></i> Print QR Standee
+            </button>
+            <a href="#" target="_blank" class="btn-secondary" id="btnTestCustomerWatch">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Test Customer View
+            </a>
+          </div>
+        </div>
+
+        <div class="spotlight-qr-box" id="spotlightQrBox">
+          <img id="spotlightQrImg" src="" alt="Folder QR">
+          <span class="spotlight-qr-caption">SCAN TO WATCH</span>
+        </div>
+      </div>
+
+      <!-- Videos Sequence List Inside Folder -->
+      <div class="videos-sequence-container">
+        <div class="section-header-row" style="margin-bottom: 8px;">
+          <div class="section-title">
+            <i class="fa-solid fa-list-ol"></i>
+            <span>Videos Sequence (1st, 2nd, 3rd Order)</span>
+            <span class="section-badge" id="folderVideoCountBadge">0 Videos</span>
+          </div>
+        </div>
+
+        <div style="font-size: 13px; color: var(--gold-light); margin-bottom: 14px; background: rgba(212, 175, 55, 0.08); padding: 8px 14px; border-radius: 6px; border-left: 3px solid var(--gold-primary);">
+          <i class="fa-solid fa-circle-info"></i> Jo video <strong>#1 (First)</strong> position par hoga, QR scan karne par customer ko wahi sabse pehle dikhega!
+        </div>
+
+        <div class="videos-sequence-list" id="folderVideosList">
+          <!-- Injected dynamically via JavaScript -->
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================================
+       MODAL 1: CREATE NEW FOLDER
+       ======================================================== -->
+  <div class="modal-backdrop" id="createFolderModal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-folder-plus text-gold"></i> Create New Folder</h3>
+        <button class="btn-close-modal" id="closeCreateFolderModal">&times;</button>
+      </div>
+      <form id="createFolderForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Folder Name *</label>
+            <input type="text" id="newFolderName" class="form-input" required placeholder="e.g. Royal Bridal Necklaces 2026" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>Description / Note (Optional)</label>
+            <textarea id="newFolderDesc" class="form-input" rows="2" placeholder="e.g. Exclusive diamond necklace designs for festive campaign"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancelCreateFolder">Cancel</button>
+          <button type="submit" class="btn-primary-gold">
+            <i class="fa-solid fa-check"></i> Create Folder &amp; Get QR
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 2: UPLOAD VIDEOS TO CURRENT FOLDER
+       ======================================================== -->
+  <div class="modal-backdrop" id="uploadModal" style="display: none;">
+    <div class="modal-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-cloud-arrow-up text-gold"></i> Upload Videos to Folder</h3>
+        <button class="btn-close-modal" id="closeUploadModal">&times;</button>
+      </div>
+      <form id="uploadForm">
+        <div class="modal-body">
+          <input type="file" id="videoFileInput" accept="video/mp4,video/webm,video/quicktime,video/*" multiple hidden>
+
+          <!-- Dropzone -->
+          <div class="modal-dropzone" id="modalDropzone">
+            <i class="fa-solid fa-file-video"></i>
+            <h4>Drag &amp; drop video files here</h4>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">or <span style="color: var(--gold-light); text-decoration: underline;">browse from your computer</span></p>
+            <span style="display: inline-block; font-size: 11.5px; background: rgba(255,255,255,0.08); padding: 3px 10px; border-radius: 20px; margin-top: 8px;">
+              Supports MP4, WebM, MOV &bull; Multiple files supported
+            </span>
+          </div>
+
+          <!-- Queue Preview List -->
+          <div id="uploadQueueContainer" style="display: none; margin-top: 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">
+              <span>Selected Videos (<span id="queueCount">0</span>):</span>
+              <button type="button" id="btnAddMoreVideos" style="background: none; border: none; color: var(--gold-primary); cursor: pointer; font-size: 12px;">+ Add More</button>
+            </div>
+            <div class="queue-items-list" id="queueItemsList"></div>
+          </div>
+
+          <!-- Upload Progress -->
+          <div id="uploadProgressWrapper" style="display: none; margin-top: 16px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+              <span id="uploadProgressText">Uploading...</span>
+              <span id="uploadProgressPercent">0%</span>
+            </div>
+            <div style="height: 6px; background: var(--bg-card); border-radius: 4px; overflow: hidden;">
+              <div id="uploadProgressBar" style="width: 0%; height: 100%; background: var(--gold-gradient); transition: width 0.2s;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancelUpload">Cancel</button>
+          <button type="submit" class="btn-primary-gold" id="btnSubmitUpload">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span id="uploadSubmitText">Upload Videos</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 3: FOLDER QR CODE DIALOG
+       ======================================================== -->
+  <div class="modal-backdrop" id="folderQrModal" style="display: none;">
+    <div class="modal-card" style="text-align: center;">
+      <div class="modal-header">
+        <h3 id="folderQrModalTitle"><i class="fa-solid fa-qrcode text-gold"></i> Folder QR Code</h3>
+        <button class="btn-close-modal" id="closeFolderQrModal">&times;</button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; align-items: center;">
+        <div style="background: #fff; padding: 16px; border-radius: 12px; display: inline-block; margin-bottom: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+          <img id="modalQrImg" src="" alt="Folder QR" style="width: 220px; height: 220px; display: block;">
+        </div>
+        <p style="font-size: 13px; color: var(--gold-light); margin-bottom: 6px;" id="modalQrNotice">
+          Scanning this QR code will open ONLY this folder's videos.
+        </p>
+        <span style="font-size: 11.5px; color: var(--text-muted); word-break: break-all; max-width: 380px;" id="modalQrUrlText">http://...</span>
+      </div>
+      <div class="modal-footer" style="justify-content: center;">
+        <button class="btn-secondary" id="modalCopyQrLink"><i class="fa-regular fa-copy"></i> Copy Link</button>
+        <button class="btn-primary-gold" id="modalDownloadQrPng"><i class="fa-solid fa-download"></i> Download PNG</button>
+        <button class="btn-secondary" id="modalPrintQrStandee"><i class="fa-solid fa-print"></i> Print Standee</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 4: RENAME (FOLDER OR VIDEO)
+       ======================================================== -->
+  <div class="modal-backdrop" id="renameModal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="renameModalHeader"><i class="fa-solid fa-pen text-gold"></i> Rename Title</h3>
+        <button class="btn-close-modal" id="closeRenameModal">&times;</button>
+      </div>
+      <form id="renameForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label id="renameLabel">New Title *</label>
+            <input type="text" id="renameInputTitle" class="form-input" required autocomplete="off">
+          </div>
+          <div class="form-group" id="renameDescGroup" style="display: none;">
+            <label>Description</label>
+            <textarea id="renameInputDesc" class="form-input" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancelRename">Cancel</button>
+          <button type="submit" class="btn-primary-gold">
+            <i class="fa-solid fa-check"></i> Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 5: PRINTABLE SCAN STANDEE / FLYER
+       ======================================================== -->
+  <div class="modal-backdrop" id="flyerModal" style="display: none;">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-print text-gold"></i> Printable QR Standee</h3>
+        <button class="btn-close-modal" id="closeFlyerModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="flyer-sheet" id="printableStandeeArea">
+          <div class="flyer-logo-box">
+            <img src="images/logo.png" alt="TaniQR Logo" class="flyer-logo-img">
+          </div>
+          <div class="flyer-sub" id="flyerFolderSub">EXCLUSIVELY FOR YOU</div>
+          <h2 style="font-size: 20px; font-weight: 700; color: #111; margin-bottom: 6px;" id="flyerFolderTitle">Folder Name</h2>
+          <p style="font-size: 13px; color: #555; margin-bottom: 12px;">Scan the QR code below with any mobile phone to stream the videos directly.</p>
+          <div class="flyer-qr-wrapper">
+            <img id="flyerQrImage" src="" alt="Scan QR">
+          </div>
+          <div style="font-size: 11px; color: #888; margin-top: 14px; letter-spacing: 1px; text-transform: uppercase;">
+            TaniQR &bull; Create. Scan. Share.
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelFlyerBtn">Close</button>
+        <button class="btn-primary-gold" id="doPrintFlyerBtn"><i class="fa-solid fa-print"></i> Print Standee Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Application Logic -->
+  <script src="js/app.js"></script>
+</body>
+</html>
