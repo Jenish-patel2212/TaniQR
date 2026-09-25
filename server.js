@@ -352,6 +352,57 @@ app.delete('/api/folders/:id', (req, res) => {
   });
 });
 
+// Web Optimization: Relocate MP4 'moov' atom to the front so mobile video streams instantly (FastStart)
+function optimizeMp4Faststart(filePath) {
+  try {
+    if (!fs.existsSync(filePath)) return;
+    const buf = fs.readFileSync(filePath);
+    let offset = 0;
+    const atoms = [];
+    while (offset < buf.length) {
+      const size = buf.readUInt32BE(offset);
+      const type = buf.toString('latin1', offset + 4, offset + 8);
+      atoms.push({ type, offset, size });
+      if (size <= 0) break;
+      offset += size;
+    }
+    const moovIdx = atoms.findIndex(a => a.type === 'moov');
+    const mdatIdx = atoms.findIndex(a => a.type === 'mdat');
+    if (moovIdx > mdatIdx && moovIdx !== -1 && mdatIdx !== -1) {
+      const moovAtom = atoms[moovIdx];
+      const moovBuf = Buffer.from(buf.slice(moovAtom.offset, moovAtom.offset + moovAtom.size));
+      const ftypAtom = atoms.find(a => a.type === 'ftyp');
+      const mdatAtom = atoms[mdatIdx];
+      const shift = moovAtom.size;
+
+      for (let i = 0; i < moovBuf.length - 8; i++) {
+        if (moovBuf.toString('latin1', i, i + 4) === 'stco') {
+          const entries = moovBuf.readUInt32BE(i + 8);
+          for (let j = 0; j < entries; j++) {
+            const entryPos = i + 12 + j * 4;
+            const oldVal = moovBuf.readUInt32BE(entryPos);
+            moovBuf.writeUInt32BE(oldVal + shift, entryPos);
+          }
+        } else if (moovBuf.toString('latin1', i, i + 4) === 'co64') {
+          const entries = moovBuf.readUInt32BE(i + 8);
+          for (let j = 0; j < entries; j++) {
+            const entryPos = i + 12 + j * 8;
+            const oldVal = moovBuf.readBigUInt64BE(entryPos);
+            moovBuf.writeBigUInt64BE(oldVal + BigInt(shift), entryPos);
+          }
+        }
+      }
+
+      const mdatBuf = buf.slice(mdatAtom.offset, mdatAtom.offset + mdatAtom.size);
+      const newBuf = Buffer.concat([buf.slice(0, ftypAtom.size), moovBuf, mdatBuf]);
+      fs.writeFileSync(filePath, newBuf);
+      console.log(`[FastStart] Successfully optimized: ${path.basename(filePath)}`);
+    }
+  } catch (err) {
+    console.warn('[FastStart] Non-fatal optimization warning:', err.message);
+  }
+}
+
 // 8. FOLDERS - Upload Videos directly inside a folder (supports multiple videos)
 app.post('/api/folders/:id/upload', upload.array('videos', 50), async (req, res) => {
   try {
@@ -384,6 +435,11 @@ app.post('/api/folders/:id/upload', upload.array('videos', 50), async (req, res)
         ? customTitles[i].trim() 
         : file.originalname.replace(/\.[^/.]+$/, "");
 
+      // Optimize file for instant zero-buffering streaming
+      const uploadedFilePath = path.join(UPLOADS_DIR, file.filename);
+      optimizeMp4Faststart(uploadedFilePath);
+      const actualSize = fs.existsSync(uploadedFilePath) ? fs.statSync(uploadedFilePath).size : file.size;
+
       const newVid = {
         id: videoId,
         folderId: folder.id,
@@ -393,7 +449,7 @@ app.post('/api/folders/:id/upload', upload.array('videos', 50), async (req, res)
         filename: file.filename,
         originalName: file.originalname,
         mimeType: file.mimetype || 'video/mp4',
-        size: file.size,
+        size: actualSize,
         views: 0,
         createdAt: new Date().toISOString()
       };
@@ -573,7 +629,10 @@ app.get('/api/stream/:id', (req, res) => {
   if (range) {
     const parts = range.replace(/bytes=/, "").split("-");
     const start = parseInt(parts[0], 10);
-    const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+    
+    // Fast-start chunk size (1.5 MB) so mobile browsers buffer in 0.1s and start playback instantly
+    const CHUNK_SIZE = 1.5 * 1024 * 1024;
+    const end = parts[1] ? parseInt(parts[1], 10) : Math.min(start + CHUNK_SIZE, fileSize - 1);
 
     if (start >= fileSize) {
       res.status(416).send(`Requested range not satisfiable\n${start} >= ${fileSize}`);
@@ -587,17 +646,26 @@ app.get('/api/stream/:id', (req, res) => {
       'Accept-Ranges': 'bytes',
       'Content-Length': chunksize,
       'Content-Type': video.mimeType || 'video/mp4',
+      'Cache-Control': 'public, max-age=604800, no-transform'
     };
 
     res.writeHead(206, head);
     file.pipe(res);
   } else {
+    // If browser doesn't send range header, send first 1.5MB chunk with 206 so it triggers range requests
+    const CHUNK_SIZE = 1.5 * 1024 * 1024;
+    const end = Math.min(CHUNK_SIZE, fileSize - 1);
+    const chunksize = end + 1;
+    const file = fs.createReadStream(filePath, { start: 0, end });
     const head = {
-      'Content-Length': fileSize,
+      'Content-Range': `bytes 0-${end}/${fileSize}`,
+      'Accept-Ranges': 'bytes',
+      'Content-Length': chunksize,
       'Content-Type': video.mimeType || 'video/mp4',
+      'Cache-Control': 'public, max-age=604800, no-transform'
     };
-    res.writeHead(200, head);
-    fs.createReadStream(filePath).pipe(res);
+    res.writeHead(206, head);
+    file.pipe(res);
   }
 });
 

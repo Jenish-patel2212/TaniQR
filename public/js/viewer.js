@@ -153,30 +153,47 @@ document.addEventListener('DOMContentLoaded', () => {
       playPromise
         .then(() => {
           giantPlayBtn.style.display = 'none';
+          videoSpinner.style.display = 'none';
         })
         .catch(() => {
-          // Autoplay blocked by mobile browser - show big play button
+          // Autoplay restricted on mobile devices without user gesture
           giantPlayBtn.style.display = 'flex';
+          videoSpinner.style.display = 'none';
         });
     }
   }
 
   // Giant Play Button click
   giantPlayBtn.addEventListener('click', () => {
-    taniqVideoPlayer.play();
     giantPlayBtn.style.display = 'none';
+    videoSpinner.style.display = 'flex';
+    taniqVideoPlayer.play().catch(() => {
+      videoSpinner.style.display = 'none';
+      giantPlayBtn.style.display = 'flex';
+    });
   });
 
   taniqVideoPlayer.addEventListener('play', () => {
     giantPlayBtn.style.display = 'none';
   });
 
-  taniqVideoPlayer.addEventListener('waiting', () => {
-    videoSpinner.style.display = 'flex';
+  taniqVideoPlayer.addEventListener('loadeddata', () => {
+    videoSpinner.style.display = 'none';
+  });
+
+  taniqVideoPlayer.addEventListener('canplay', () => {
+    videoSpinner.style.display = 'none';
   });
 
   taniqVideoPlayer.addEventListener('playing', () => {
     videoSpinner.style.display = 'none';
+    giantPlayBtn.style.display = 'none';
+  });
+
+  taniqVideoPlayer.addEventListener('waiting', () => {
+    if (!taniqVideoPlayer.paused) {
+      videoSpinner.style.display = 'flex';
+    }
   });
 
   // Prev / Next Buttons
